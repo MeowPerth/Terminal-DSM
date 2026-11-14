@@ -50,7 +50,7 @@
 | **右键菜单** | 终端内右键弹出 tmux 上下文菜单（分屏/杀窗格/缩放/粘贴 tmux 缓冲），松开右键不消失 |
 | **状态栏置顶** | 可改回底部（一行配置） |
 
-### 剪贴板（原项目的主要痛点）
+### 剪贴板
 
 | 操作 | 方式 |
 |---|---|
@@ -111,7 +111,7 @@ sudo synopkg restart terminal
 ### 打开方式
 
 - DSM 左上角九宫格 → **Terminal**
-- 或直接访问 `https://<你的NAS>:5001/terminal/`（会自动打开 DSM 应用窗口）
+- 或直接访问 `https://<NAS-IP>:5001/terminal/`（会自动打开 DSM 应用窗口）
 
 首次打开若窗口空白，按 `Ctrl+Shift+R` 强刷一次 DSM 页面即可（DSM 前端缓存，之后版本的静态资源已带哈希，不再需要）。
 
@@ -156,7 +156,7 @@ alias ll='ls -alF --color=auto'
 `fontSize`(14)、`fontFamily`、`scrollback`(10000)、`cursorBlink`、`theme`（深色）→ `src/server/assets/app.js`
 窗口默认大小 `1160×620`、是否允许多开 → `src/app/terminal.js`、`src/app/config`
 
-### 5. 服务端参数（一般不用动）
+### 5. 服务端参数
 
 `-socket`、`-addr`（调试用 TCP）、`-dsm`、`-app`、`-cmd`、`-terminfo`、`-admin-only`、`-cache-ttl`、`-cache-neg-ttl`
 见 `src/service-setup.sh` 的启动参数。
@@ -174,16 +174,14 @@ alias ll='ls -alF --color=auto'
 | 普通用户提权 | 非管理员以本人 uid/gid 运行，不是 root |
 | 旧前端残留 | 静态资源带内容哈希 + `no-cache` |
 
-**注意**：管理员拿到的就是 root shell，等价于 NAS 的最高权限。请确保 DSM 账号本身安全（强密码、两步验证、不要把 NAS 管理端口暴露到公网）。
+> 管理员拿到的是 root shell，等价于 NAS 的最高权限。终端的安全性最终取决于 DSM 账号本身（强密码、两步验证），因此不建议把 DSM 管理端口直接暴露到公网。
 
 ---
 
 ## 与原项目对比
 
 原项目：[RROrg/syno-apps · `src/spk/terminal`](https://github.com/RROrg/syno-apps/tree/main/src/spk/terminal)
-（版本 4.0-2，作者 wjz304），基于 **ttyd** + 可选 tmux。
-
-下面按**上游实际的代码与默认配置**逐项核对（不是凭印象）：
+（4.0-2，作者 wjz304），实现方式为 ttyd + 可选 tmux。下表对比两者的实现差异。
 
 ### 功能对照
 
@@ -204,24 +202,15 @@ alias ll='ls -alF --color=auto'
 | **出错表现** | 页面白屏 / 502 / 无提示 | 明确的 302 / 403 说明页 + 服务端拒绝日志 |
 | **许可证** | GPLv2 | GPL（见 [LICENSE](LICENSE)） |
 
-### 本项目更好的地方
+### 相对原项目的主要差异
 
-- **安全模型完全不同**：原项目是"知道 URL 就能拿到 root shell"，还主动丢弃 cookie、开 `ACAO: *`；本项目把入口绑在 DSM 会话上，并且不监听任何 TCP 端口
-- **不用二次输密码**：DSM 登录即认证
-- **权限分级**：普通用户终于可以只用自己账号，而不是所有人共享 root
-- **剪贴板可用**：OSC 52 + 选中即复制 + 快捷键，解决了原项目最大的痛点
-- **默认就有会话保持**：tmux 是内建的，不是"可选装"
-- **升级不踩缓存**：静态资源带内容哈希
-- **单二进制**：没有 ttyd、没有页面注入、没有额外的进程管理
-
-### 仍然不如原项目 / 需要权衡
-
-- **架构支持面窄**：原项目虽然只有 x86_64 的 ttyd，但标了 `noarch`、ARM 机型装上去也能启动（ttyd 跑不了而已）；本项目目前只出 `x64-7.0`，ARM 需要在对应架构上交叉编译 Go 二进制
-- **代码量变大**：从"几个 shell 脚本 + 一段前端"变成"一个 Go 服务"，排查问题要看 `/var/packages/terminal/var/terminal.log`
-- **依赖 DSM 内部 API**：用 `SYNO.Core.Desktop.Initdata` 校验会话并取用户名，DSM 大版本升级若改接口需跟进
-- **仍需处理 privilege**：DSM 每次安装/升级都会把 `privilege` 重置成 `package`，需要手动改一次（原项目一模一样，这是 DSM 的限制）
-- **右键被接管**：为保证"右键弹 tmux 菜单且松开不消失"，网页端接管了右键事件；个别终端程序里右键行为与原生终端不同
-- **许可证需与上游一致**：上游是 **GPLv2**，如果本项目要严格合规，许可证应保持 GPLv2（当前仓库是 GPLv3，建议改成 GPLv2）
+- **入口鉴权**：以 DSM 会话作为唯一准入条件；原项目入口不做校验，并在反代时主动丢弃 cookie
+- **无需二次输入密码**：DSM 登录完成认证，打开即为 shell
+- **权限分级**：administrators 得到 root，其他用户以本人账号运行
+- **剪贴板**：OSC 52 + 选中即复制 + 快捷键
+- **内建 tmux**：会话保持、多窗口、分屏均为默认能力，而非可选项
+- **单二进制**：认证、界面、终端编译进同一个 Go 二进制，不依赖 ttyd 与页面注入
+- **升级即生效**：静态资源 URL 带内容哈希
 
 ## 常见问题
 
