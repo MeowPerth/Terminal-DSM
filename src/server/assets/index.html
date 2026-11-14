@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Terminal</title>
+  <link rel="stylesheet" href="/terminal/assets/xterm.css?__VER__" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #1e1e1e; }
+    #terminal { position: absolute; inset: 0; padding: 2px 0 0 2px; box-sizing: border-box; overflow: hidden; }
+    #toast {
+      position: fixed; right: 14px; bottom: 14px; z-index: 10;
+      padding: 6px 12px; border-radius: 6px; font: 13px/1.4 -apple-system, "Segoe UI", sans-serif;
+      color: #fff; background: rgba(46, 160, 67, .94); opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    #overlay {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, .65); color: #ddd; font: 14px/1.6 -apple-system, "Segoe UI", sans-serif;
+      z-index: 9; cursor: pointer;
+    }
+    #overlay.show { display: flex; }
+    /* 隐藏 xterm 的滚动条（滚轮/翻页不受影响） */
+    .xterm .xterm-viewport { scrollbar-width: none; -ms-overflow-style: none; }
+    .xterm .xterm-viewport::-webkit-scrollbar { width: 0; height: 0; }
+  </style>
+</head>
+
+<body>
+  <div id="terminal"></div>
+  <div id="toast"></div>
+  <div id="overlay"><div>连接已断开，点击重新连接</div></div>
+
+  <script src="/terminal/assets/xterm.js?__VER__"></script>
+  <script src="/terminal/assets/addon-fit.js?__VER__"></script>
+  <script src="/terminal/assets/app.js?__VER__"></script>
+</body>
+
+</html>

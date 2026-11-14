@@ -1,0 +1,4 @@
+[app]
+app_name = "Terminal"
+description = "在 DSM 桌面窗口中使用的终端：认证走 DSM 登录，管理员为 root、普通用户为本人账号，tmux 保持会话与分屏"
+index_title = "Terminal"

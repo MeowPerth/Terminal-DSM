@@ -1,0 +1,104 @@
+#
+# Copyright (C) 2022 Ing <https://github.com/wjz304>
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+#
+# Terminal-DSM: https://github.com/MeowPerth/Terminal-DSM
+# 上游: https://github.com/RROrg/syno-apps/tree/main/src/spk/terminal
+#
+
+name: build
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      spksrc:
+        description: "branch"
+        required: false
+        type: string
+      version:
+        description: "version"
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      # 终端服务端是 Go 静态二进制（随架构构建）+ spksrc 的 tmux，当前只出 x86_64
+      matrix:
+        target: [x64-7.0]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+  
+      - name: Init Env
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          sudo timedatectl set-timezone "Asia/Shanghai"
+
+      - name: Calculate version
+        id: version
+        run: |
+          version=""
+          if [ ${{ github.ref_type }} == 'tag' ]; then
+            version="${{ github.ref_name }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            version="${{ inputs.version }}"
+          else
+            version="$(date +"%Y.%m.%d-%H%M")"
+          fi
+
+          echo "VERSION: ${version}"
+          echo "VERSION=${version}" >> $GITHUB_OUTPUT
+
+      - name: Checkout SynoCommunity Source and Docker Image
+        run: |
+          docker pull ghcr.io/synocommunity/spksrc
+          git clone --depth=1 https://github.com/SynoCommunity/spksrc.git
+
+          if [ -n "${{ inputs.spksrc }}" ]; then
+            cd spksrc
+            git fetch --depth=1 origin "${{ inputs.spksrc }}"
+            git checkout "${{ inputs.spksrc }}"
+            cd ..
+          fi
+
+      - name: Build terminal-server (Go)
+        run: |
+          cd src/server
+          go build -mod=vendor -trimpath -ldflags "-s -w" -o bin/terminal-server .
+          ls -lh bin/terminal-server
+
+      - name: Build Package
+        run: |
+          ROOT_PATH="${{ github.workspace }}"
+          MAKE_ARCH="arch-${{ matrix.target }}"
+
+          # 本仓库只有 terminal 一个套件：cross 配方放 spksrc/cross，套件本身放 spksrc/spk/terminal
+          cp -rf ${ROOT_PATH}/cross/. ${ROOT_PATH}/spksrc/cross/
+          mkdir -p ${ROOT_PATH}/spksrc/spk/terminal
+          cp -rf ${ROOT_PATH}/Makefile ${ROOT_PATH}/src ${ROOT_PATH}/LICENSE ${ROOT_PATH}/spksrc/spk/terminal/
+
+          echo "Building package: terminal"
+          docker run -v ${ROOT_PATH}/spksrc:/spksrc -w /spksrc/spk/terminal ghcr.io/synocommunity/spksrc make ${MAKE_ARCH} || exit 1
+  
+      - name: Upload to Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.target }}
+          path: |
+            spksrc/packages/*.spk
+  
+      - name: Release
+        if: steps.version.outputs.version != ''
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          files: spksrc/packages/*.spk

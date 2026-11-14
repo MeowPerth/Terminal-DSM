@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html class="img-no-display">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<link href="../../../../help/help.css" rel="stylesheet" type="text/css">
+	<link href="../../../../help/scrollbar/flexcroll.css" rel="stylesheet" type="text/css">
+	<script type="text/javascript" src="../../../../help/scrollbar/flexcroll.js"></script>
+	<script type="text/javascript" src="../../../../help/scrollbar/initFlexcroll.js"></script>
+</head>
+
+<body>
+	<p>Terminal：在 DSM 桌面窗口里直接使用的终端，<b>认证就是 DSM 登录</b>，不需要再输一次密码。</p>
+
+	<h4>权限</h4>
+	<ul>
+		<li><b>administrators 组</b>：打开即为 <code>root</code>；</li>
+		<li><b>其他 DSM 用户</b>：以<b>本人账号</b>登录（自己的家目录、自己的权限）；</li>
+		<li>未登录访问会被跳转到 DSM 登录页；</li>
+		<li>由 <code>/var/packages/terminal/var/terminal.conf</code> 的 <code>ALLOW_ALL_USERS</code> 控制是否允许普通用户使用。</li>
+	</ul>
+
+	<h4>复制 / 粘贴</h4>
+	<ul>
+		<li><b>复制：</b>鼠标拖动选中，松开即自动复制；也可按 <code>Ctrl + Shift + C</code>；</li>
+		<li><b>粘贴：</b><code>Ctrl + Shift + V</code>；</li>
+		<li>tmux 内复制的文本会通过 OSC 52 自动进入系统剪贴板。</li>
+	</ul>
+
+	<h4>右键菜单（tmux）</h4>
+	<ul>
+		<li>在终端内<b>点右键</b>会弹出 tmux 的上下文菜单，松开右键不会消失；</li>
+		<li>菜单项可用鼠标左键点，或按对应快捷键：<code>h</code> 左右分屏、<code>v</code> 上下分屏、<code>x</code> 关闭窗格、<code>r</code> 重启窗格、<code>m</code> 标记、<code>z</code> 缩放；</li>
+		<li>关闭菜单：点菜单项、点其它位置或按 <code>Esc</code>。</li>
+	</ul>
+
+	<h4>tmux 多窗口 / 分屏</h4>
+	<ul>
+		<li>新建窗口 <code>Ctrl+B c</code>；切换 <code>Ctrl+B n/p</code> 或 <code>Ctrl+B 1..9</code>；</li>
+		<li>左右分屏 <code>Ctrl+B %</code>，上下分屏 <code>Ctrl+B "</code>，面板间用 <code>Ctrl+B 方向键</code>；</li>
+		<li>翻历史 <code>Ctrl+B [</code>（<code>q</code> 退出）；关闭窗口 <code>Ctrl+B &amp;</code>；</li>
+		<li><code>Ctrl+B d</code> 断开但保留会话——直接关窗口也会保留，重新打开会接回原来的现场。</li>
+	</ul>
+
+	<h4>安全</h4>
+	<ul>
+		<li>入口只接受有效的 DSM 会话（校验 cookie + SynoToken）；</li>
+		<li>服务只监听 unix socket，<b>不占用任何 TCP 端口</b>，外部无法直连；</li>
+		<li>WebSocket 做同源校验，防止跨站连接。</li>
+	</ul>
+
+	<p style="color:#888;font-size:12px">
+		项目主页：<a href="https://github.com/MeowPerth/Terminal-DSM" target="_blank">MeowPerth/Terminal-DSM</a><br>
+		基于 <a href="https://github.com/RROrg/syno-apps" target="_blank">RROrg/syno-apps</a> 的 terminal 套件（原作者 wjz304），1.0.0 起重写为单二进制实现。
+	</p>
+</body>
+
+</html>

@@ -1,0 +1,4 @@
+[app]
+app_name = "Terminal"
+description = "Terminal inside a DSM desktop window: DSM-login auth, root for admins, own account for other users, tmux sessions"
+index_title = "Terminal"

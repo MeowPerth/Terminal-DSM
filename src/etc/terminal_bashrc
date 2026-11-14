@@ -1,0 +1,12 @@
+# terminal-dsm 的交互式 bash 启动文件
+# 目的：拿到完整的登录环境（PATH 等），并把提示符改成 用户@主机:当前目录#
+
+[ -f /etc/profile ] && . /etc/profile >/dev/null 2>&1
+
+# 彩色提示符：root@HServer:/volume1# 
+PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
+
+# 常用别名
+alias ll='ls -alF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'

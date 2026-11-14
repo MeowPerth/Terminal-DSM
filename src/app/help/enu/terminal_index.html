@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html class="img-no-display">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<link href="../../../../help/help.css" rel="stylesheet" type="text/css">
+	<link href="../../../../help/scrollbar/flexcroll.css" rel="stylesheet" type="text/css">
+	<script type="text/javascript" src="../../../../help/scrollbar/flexcroll.js"></script>
+	<script type="text/javascript" src="../../../../help/scrollbar/initFlexcroll.js"></script>
+</head>
+
+<body>
+	<p>Terminal: a terminal inside a DSM desktop window. <b>Your DSM login is the authentication</b> - no second password prompt.</p>
+
+	<h4>Permissions</h4>
+	<ul>
+		<li><b>administrators</b>: opens as <code>root</code>;</li>
+		<li><b>other DSM users</b>: sign in as <b>themselves</b> (own home directory, own permissions);</li>
+		<li>Access without a DSM session is redirected to the DSM sign-in page;</li>
+		<li>Controlled by <code>ALLOW_ALL_USERS</code> in <code>/var/packages/terminal/var/terminal.conf</code>.</li>
+	</ul>
+
+	<h4>Copy / Paste</h4>
+	<ul>
+		<li><b>Copy:</b> drag to select - it is copied on release, or press <code>Ctrl + Shift + C</code>;</li>
+		<li><b>Paste:</b> <code>Ctrl + Shift + V</code>;</li>
+		<li>Copies made inside tmux are forwarded to the system clipboard via OSC 52.</li>
+	</ul>
+
+	<h4>Right-click menu (tmux)</h4>
+	<ul>
+		<li><b>Right-click</b> inside the terminal opens the tmux context menu; releasing the button does not close it;</li>
+		<li>Pick an item with the left button, or press its shortcut: <code>h</code> split left/right, <code>v</code> split top/bottom, <code>x</code> kill pane, <code>r</code> respawn, <code>m</code> mark, <code>z</code> zoom;</li>
+		<li>Close it by choosing an item, clicking elsewhere, or pressing <code>Esc</code>.</li>
+	</ul>
+
+	<h4>tmux windows and panes</h4>
+	<ul>
+		<li>New window <code>Ctrl+B c</code>; switch <code>Ctrl+B n/p</code> or <code>Ctrl+B 1..9</code>;</li>
+		<li>Split <code>Ctrl+B %</code> (side by side) or <code>Ctrl+B "</code> (stacked); move with <code>Ctrl+B arrow</code>;</li>
+		<li>Scrollback <code>Ctrl+B [</code> (<code>q</code> to exit); close window <code>Ctrl+B &amp;</code>;</li>
+		<li><code>Ctrl+B d</code> detaches but keeps the session - closing the window keeps it too, reopening reattaches.</li>
+	</ul>
+
+	<h4>Security</h4>
+	<ul>
+		<li>Only a valid DSM session is accepted (cookie + SynoToken are verified);</li>
+		<li>The server listens on a unix socket only - <b>no TCP port</b> is exposed;</li>
+		<li>The WebSocket is same-origin checked to block cross-site connections.</li>
+	</ul>
+
+	<p style="color:#888;font-size:12px">
+		Project: <a href="https://github.com/MeowPerth/Terminal-DSM" target="_blank">MeowPerth/Terminal-DSM</a><br>
+		Based on the terminal package in <a href="https://github.com/RROrg/syno-apps" target="_blank">RROrg/syno-apps</a> (original author wjz304); rewritten as a single binary since 1.0.0.
+	</p>
+</body>
+
+</html>

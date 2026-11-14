@@ -1,0 +1,23 @@
+{
+  "terminal.js": {
+    "MeowPerth.Terminal.AppInstance": {
+      "type": "app",
+      "title": "app:app_name",
+      "version": "0.13",
+      "icon": "images/terminal-{0}.png",
+      "texts": "texts",
+      "allowMultiInstance": false,
+      "allUsers": true,
+      "appWindow": "MeowPerth.Terminal.AppWindow",
+      "depend": [
+        "MeowPerth.Terminal.AppWindow"
+      ]
+    },
+    "MeowPerth.Terminal.AppWindow": {
+      "type": "lib",
+      "title": "app:app_name",
+      "icon": "images/terminal-{0}.png",
+      "texts": "texts"
+    }
+  }
+}
