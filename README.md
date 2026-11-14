@@ -200,7 +200,6 @@ alias ll='ls -alF --color=auto'
 | **依赖** | ttyd +（可选）tmux + nginx 反代 | Go 单二进制 + tmux |
 | **架构** | `SPK_PACKAGE_ARCHS = noarch`，但 ttyd 是 x86_64 预编译二进制 | 只出 `x64-7.0`（Go 二进制随架构构建） |
 | **出错表现** | 页面白屏 / 502 / 无提示 | 明确的 302 / 403 说明页 + 服务端拒绝日志 |
-| **许可证** | GPLv2 | GPL（见 [LICENSE](LICENSE)） |
 
 ### 相对原项目的主要差异
 
