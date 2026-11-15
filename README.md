@@ -192,6 +192,7 @@ alias ll='ls -alF --color=auto'
 | 外部直连终端 | 服务只监听 unix socket，**没有任何 TCP 监听** |
 | 普通用户提权 | 非管理员以本人 uid/gid 运行，不是 root |
 | 旧前端残留 | 静态资源带内容哈希 + `no-cache` |
+| 会话校验被"假成功"绕过 | DSM 的 `SYNO.Core.Desktop.Initdata` 对未登录请求也返回 `success:true`（`isLogined:false`、无 `user`），因此校验要求 `isLogined` 且 `user` 非空，并再用需要会话的接口复核 |
 
 > 管理员拿到的是 root shell，等价于 NAS 的最高权限。终端的安全性最终取决于 DSM 账号本身（强密码、两步验证），因此不建议把 DSM 管理端口直接暴露到公网。
 

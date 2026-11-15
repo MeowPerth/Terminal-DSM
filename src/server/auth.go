@@ -133,32 +133,34 @@ func checkSession(sid, clientIP, token string) (ok bool, user string, admin bool
 	if sid == "" {
 		return false, "", false
 	}
-	// 一次调用同时拿到“会话是否有效 / 当前用户名 / 是否管理员”
+	// 一次调用同时拿到“会话是否有效 / 当前用户名 / 是否管理员”。
+	// 注意：Initdata 对未登录请求也会返回 success:true（isLogined=false、无 user），
+	// 所以必须同时要求 isLogined 且 user 非空，否则不能当成有效会话。
 	if body, ok := dsmGet(sid, "/webapi/entry.cgi?api=SYNO.Core.Desktop.Initdata&version=1&method=get", clientIP, token); ok {
 		var v struct {
 			Data struct {
 				Session struct {
-					User    string `json:"user"`
-					IsAdmin bool   `json:"is_admin"`
+					User      string `json:"user"`
+					IsAdmin   bool   `json:"is_admin"`
+					IsLogined bool   `json:"isLogined"`
 				} `json:"Session"`
 			} `json:"data"`
 		}
-		if json.Unmarshal(body, &v) == nil && v.Data.Session.User != "" {
+		if json.Unmarshal(body, &v) == nil && v.Data.Session.IsLogined && v.Data.Session.User != "" {
 			return true, v.Data.Session.User, v.Data.Session.IsAdmin
 		}
-		return true, "", dsmOKFrom(sid, "/webapi/entry.cgi?api=SYNO.Core.System&version=1&method=info", clientIP, token)
+		log.Printf("dsm Initdata 返回未登录（isLogined=%v user=%q），继续用需要会话的接口复核",
+			v.Data.Session.IsLogined, v.Data.Session.User)
 	}
-	// 兜底：老版本 DSM 没有 Initdata 时，退回原来的判定方式（无法拿到用户名）
-	ok = dsmOKFrom(sid, "/webapi/entry.cgi?api=SYNO.FileStation.Info&version=2&method=get", clientIP, token)
-	if !ok {
-		ok = dsmOKFrom(sid, "/webapi/entry.cgi?api=SYNO.Core.System&version=1&method=info", clientIP, token)
-		if ok {
-			return true, "", true // 能调 System.info 的一定是管理员
-		}
-		return false, "", false
+	// 兜底 / 复核：这两个接口对无效会话会返回 {"error":{"code":119}}，可信
+	if dsmOKFrom(sid, "/webapi/entry.cgi?api=SYNO.FileStation.Info&version=2&method=get", clientIP, token) {
+		admin = dsmOKFrom(sid, "/webapi/entry.cgi?api=SYNO.Core.System&version=1&method=info", clientIP, token)
+		return true, "", admin
 	}
-	admin = dsmOKFrom(sid, "/webapi/entry.cgi?api=SYNO.Core.System&version=1&method=info", clientIP, token)
-	return ok, "", admin
+	if dsmOKFrom(sid, "/webapi/entry.cgi?api=SYNO.Core.System&version=1&method=info", clientIP, token) {
+		return true, "", true // 能调 System.info 的一定是管理员
+	}
+	return false, "", false
 }
 
 func lookupSession(sid, clientIP, token string) (ok bool, user string, admin bool) {
