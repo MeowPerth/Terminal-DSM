@@ -8,9 +8,9 @@
 - 不是 ttyd 的包装，而是**单个 Go 静态二进制**同时负责认证 / 界面 / 终端
 
 > [!WARNING]
-> **群晖上使用 Terminal / ttyd 类终端套件，请先评估风险再安装。**
+> **群晖上使用 Terminal 终端套件，请先评估风险再安装。**
 >
-> 这类套件把 NAS 的 shell 通过 Web 暴露出来，而 **ttyd 时代的实现没有任何鉴权**：
+> 这套件把 NAS 的 shell 通过 Web 暴露出来，而 **套件中的ttyd 时代的实现没有任何鉴权**：
 >
 > - **3.x（如 3.0-5）**：ttyd 直接监听 **TCP `17681`**（`-p 17681 -6 -a -W -b /terminal/`），同时 nginx 又把 `/terminal` 反代到同一个 ttyd。
 >   也就是说，看到 `http://<NAS>:17681/terminal/` 或 `https://<NAS>:5001/terminal/` 的**任何人**都能直接进入 shell，**不需要 DSM 账号**。
