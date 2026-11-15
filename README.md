@@ -7,6 +7,25 @@
 - 不开放独立的 Web 页面（只在 DSM 窗口里用）
 - 不是 ttyd 的包装，而是**单个 Go 静态二进制**同时负责认证 / 界面 / 终端
 
+> [!WARNING]
+> **群晖上使用 Terminal / ttyd 类终端套件，请先评估风险再安装。**
+>
+> 这类套件把 NAS 的 shell 通过 Web 暴露出来，而 **ttyd 时代的实现没有任何鉴权**：
+>
+> - **3.x（如 3.0-5）**：ttyd 直接监听 **TCP `17681`**（`-p 17681 -6 -a -W -b /terminal/`），同时 nginx 又把 `/terminal` 反代到同一个 ttyd。
+>   也就是说，看到 `http://<NAS>:17681/terminal/` 或 `https://<NAS>:5001/terminal/` 的**任何人**都能直接进入 shell，**不需要 DSM 账号**。
+>   而且 3.x 的 ttyd 直接运行 `tmux new -A -s terminal`，**所有人共用同一个 tmux 会话**：别人进来能看到你正在输入的内容，也能接管你的 root shell。
+> - **4.0**：改为 unix socket（不再监听 17681），但入口**仍然没有鉴权**，反代时还会 `proxy_set_header Cookie ""` 主动丢弃 cookie；
+>   默认 `USER_LOGIN=false` 会走 `login`（需要 root 密码），tmux 默认关闭（`WITH_TMUX=false`）。
+> - **4.0 的 tmux 不建议开启**：它同样是 `tmux new -A -s terminal`，一旦开启，**所有访问者接入同一个会话**；
+>   配上无鉴权的入口，等于把同一个 root shell 分享给所有能访问到这个地址的人。
+>
+> 如果 NAS 有公网访问（端口映射 / DDNS / QuickConnect），**不要使用 3.x，也不要在 4.0 里开启 tmux**。
+> 套件默认以 root 运行，一旦暴露就等于把 NAS 的最高权限交出去。
+>
+> 本项目（1.0.0）把入口绑定到 DSM 会话（cookie + `SynoToken`）、只监听 unix socket、管理员与普通用户分别运行，
+> 但**仍不建议把 DSM 管理端口直接暴露到公网**：请配合 VPN / 反向代理 + 访问控制，并开启强密码与两步验证。
+
 > 本项目基于 [RROrg/syno-apps](https://github.com/RROrg/syno-apps) 里的 `terminal` 套件
 > （4.0-2，原作者 [wjz304](https://github.com/wjz304)，基于 ttyd）重写而来，1.0.0 起为单二进制实现。
 > 原始代码版权归原作者，本项目按 **GPLv3** 分发，详见 [LICENSE](LICENSE)。
