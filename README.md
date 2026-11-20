@@ -1,5 +1,12 @@
 # Terminal-DSM
 
+[![release](https://img.shields.io/github/v/release/MeowPerth/Terminal-DSM?style=flat-square&label=release&color=blue)](https://github.com/MeowPerth/Terminal-DSM/releases)
+[![stars](https://img.shields.io/github/stars/MeowPerth/Terminal-DSM?style=flat-square&label=stars&color=blue)](https://github.com/MeowPerth/Terminal-DSM/stargazers)
+[![issues](https://img.shields.io/github/issues/MeowPerth/Terminal-DSM?style=flat-square&label=issues&color=yellow)](https://github.com/MeowPerth/Terminal-DSM/issues)
+[![pull requests](https://img.shields.io/github/issues-pr/MeowPerth/Terminal-DSM?style=flat-square&label=pull%20requests&color=yellow)](https://github.com/MeowPerth/Terminal-DSM/pulls)
+[![downloads](https://img.shields.io/github/downloads/MeowPerth/Terminal-DSM/total?style=flat-square&label=downloads&color=green)](https://github.com/MeowPerth/Terminal-DSM/releases)
+[![license](https://img.shields.io/github/license/MeowPerth/Terminal-DSM?style=flat-square&label=license&color=orange)](https://github.com/MeowPerth/Terminal-DSM/blob/main/LICENSE)
+
 **在 DSM 桌面窗口里直接使用的终端套件**：认证走 DSM 登录，管理员打开即 `root`，
 普通用户以本人账号登录，tmux 保持会话与多窗口/分屏，浏览器里复制粘贴正常工作。
 
