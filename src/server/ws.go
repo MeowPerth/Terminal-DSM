@@ -2,16 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"os/user"
-	"strconv"
-	"syscall"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
+	"os/user"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/creack/pty"
 	"github.com/gorilla/websocket"

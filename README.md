@@ -30,11 +30,11 @@
 > 如果 NAS 有公网访问（端口映射 / DDNS / QuickConnect），**不要使用 3.x，也不要在 4.0 里开启 tmux**。
 > 套件默认以 root 运行，一旦暴露就等于把 NAS 的最高权限交出去。
 >
-> 本项目（1.1.0）把入口绑定到 DSM 会话（cookie + `SynoToken`）、只监听 unix socket、管理员与普通用户分别运行，
+> 本项目（1.1.1）把入口绑定到 DSM 会话（cookie + `SynoToken`）、只监听 unix socket、管理员与普通用户分别运行，
 > 但**仍不建议把 DSM 管理端口直接暴露到公网**：请配合 VPN / 反向代理 + 访问控制，并开启强密码与两步验证。
 
 > 本项目基于 [RROrg/syno-apps](https://github.com/RROrg/syno-apps) 里的 `terminal` 套件
-> （4.0-2，原作者 [wjz304](https://github.com/wjz304)，基于 ttyd）重写而来，1.0.0 起为单二进制实现，1.1.0 起提供工具栏。
+> （4.0-2，原作者 [wjz304](https://github.com/wjz304)，基于 ttyd）重写而来，1.0.0 起为单二进制实现，1.1.0 起提供工具栏（1.1.1 修复终端右侧留白与关窗格时的提示闪烁）。
 > 原始代码版权归原作者，本项目按 **GPLv3** 分发，详见 [LICENSE](LICENSE)。
 
 ---
@@ -224,7 +224,7 @@ alias ll='ls -alF --color=auto'
 
 ### 功能对照
 
-| 维度 | 原项目 4.0-2（ttyd） | Terminal-DSM 1.1.0 |
+| 维度 | 原项目 4.0-2（ttyd） | Terminal-DSM 1.1.1 |
 |---|---|---|
 | **入口认证** | ❌ 无。nginx 的 `location /terminal` 直接反代到 ttyd 的 unix socket，不做任何校验；而且 `proxy_set_header Cookie ""` **主动丢掉 cookie**，所以哪怕 DSM 已登录也传不进去 | ✅ 应用内校验 DSM 会话（cookie + `SynoToken`），未登录 302 到登录页 |
 | **打开后要输密码** | ⚠️ 默认是 `login`（`USER_LOGIN=false`），会弹 `login:` 要 root 密码 | ✅ 打开即进 shell（认证已经由 DSM 完成） |

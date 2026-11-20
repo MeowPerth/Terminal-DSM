@@ -75,6 +75,10 @@
     .modal .btns button.danger { background: #a33; border-color: #c44; color: #fff; }
     .modal .btns button.danger:hover { background: #c44; }
 
+    /* 全局零宽滚动条：xterm 初始化时按“测量到的滚动条宽度”预留列宽，
+       如果只隐藏 viewport 的滚动条，它会白白预留约 14px，导致右侧留空。 */
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    * { scrollbar-width: none; -ms-overflow-style: none; }
     .xterm .xterm-viewport { scrollbar-width: none; -ms-overflow-style: none; }
     .xterm .xterm-viewport::-webkit-scrollbar { width: 0; height: 0; }
   </style>

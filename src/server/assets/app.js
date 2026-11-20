@@ -22,6 +22,16 @@
   var fit = new FitAddon.FitAddon();
   term.loadAddon(fit);
   term.open(document.getElementById("terminal"));
+
+  // xterm 默认会给滚动条预留约 15px（scrollBarWidth），即使滚动条已被 CSS 隐藏，
+  // 这会让终端右侧空出一条。把它置 0，列数就能铺满容器宽度。
+  function dropScrollbarReserve() {
+    try {
+      var vp = term._core && term._core.viewport;
+      if (vp) vp.scrollBarWidth = 0;
+    } catch (e) {}
+  }
+  dropScrollbarReserve();
   fit.fit();
 
   var toastEl = document.getElementById("toast");
@@ -217,8 +227,9 @@
         case "kill-pane":
           askConfirm("关闭当前窗格？", "如果是最后一个窗格，会话会结束，需要重新打开窗口。").then(function (ok) {
             if (!ok) return;
+            // tmux 侧 bind x 直接 kill-pane（不再弹它自己的确认），所以只发一次
             sendKeys(PREFIX + "x");
-            setTimeout(function () { sendKeys("y"); keepFocus(); }, 200);
+            keepFocus();
           });
           return;
         case "help":
@@ -237,6 +248,14 @@
       }, { passive: false });
     }
   })();
+
+  /* 关闭窗口/离开页面时先把内容隐藏，避免 tmux 的最后一条消息闪一下 */
+  window.addEventListener("pagehide", function () {
+    try { document.body.style.visibility = "hidden"; } catch (e) {}
+  });
+  window.addEventListener("beforeunload", function () {
+    try { document.body.style.visibility = "hidden"; } catch (e) {}
+  });
 
   /* ---------- WebSocket ---------- */
   var overlay = document.getElementById("overlay");
@@ -294,6 +313,7 @@
 
   // 尺寸自适应：窗口/iframe 变化、字体度量延迟、ExtJS 动画结束后都重新 fit
   function fitNow() {
+    dropScrollbarReserve();
     try { fit.fit(); } catch (e) {}
   }
   window.addEventListener("resize", fitNow);
