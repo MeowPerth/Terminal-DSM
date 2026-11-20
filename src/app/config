@@ -3,7 +3,7 @@
     "MeowPerth.Terminal.AppInstance": {
       "type": "app",
       "title": "app:app_name",
-      "version": "0.13",
+      "version": "0.17",
       "icon": "images/terminal-{0}.png",
       "texts": "texts",
       "allowMultiInstance": false,

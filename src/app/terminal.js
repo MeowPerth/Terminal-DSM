@@ -15,6 +15,9 @@ Ext.define("MeowPerth.Terminal.AppWindow", {
   layout: "fit",
   width: "100%",
   height: "100%",
+  // 工具栏 + 终端需要的最小可用尺寸，避免窗口被拖得太小
+  minWidth: 640,
+  minHeight: 420,
   initComponent: function () {
     try {
       // DSM 的浏览器会话默认启用 SynoToken，API 鉴权需要它；
@@ -36,6 +39,19 @@ Ext.define("MeowPerth.Terminal.AppWindow", {
         },
       ];
       this.callParent(arguments);
+
+      // DSM 会记住上次的窗口尺寸；如果恢复出来的尺寸太小，打开时拉回最小值
+      var self = this;
+      var MIN_W = 640, MIN_H = 420;
+      this.on("show", function () {
+        try {
+          var w = self.getWidth() || 0;
+          var h = self.getHeight() || 0;
+          if (w < MIN_W || h < MIN_H) {
+            self.setSize(Math.max(w, MIN_W), Math.max(h, MIN_H));
+          }
+        } catch (e) {}
+      });
     } catch (e) {
       // 万一初始化失败，别留一个白窗口：直接把原因显示出来，便于排查
       this.items = [

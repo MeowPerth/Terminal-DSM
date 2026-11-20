@@ -23,11 +23,11 @@
 > 如果 NAS 有公网访问（端口映射 / DDNS / QuickConnect），**不要使用 3.x，也不要在 4.0 里开启 tmux**。
 > 套件默认以 root 运行，一旦暴露就等于把 NAS 的最高权限交出去。
 >
-> 本项目（1.0.0）把入口绑定到 DSM 会话（cookie + `SynoToken`）、只监听 unix socket、管理员与普通用户分别运行，
+> 本项目（1.1.0）把入口绑定到 DSM 会话（cookie + `SynoToken`）、只监听 unix socket、管理员与普通用户分别运行，
 > 但**仍不建议把 DSM 管理端口直接暴露到公网**：请配合 VPN / 反向代理 + 访问控制，并开启强密码与两步验证。
 
 > 本项目基于 [RROrg/syno-apps](https://github.com/RROrg/syno-apps) 里的 `terminal` 套件
-> （4.0-2，原作者 [wjz304](https://github.com/wjz304)，基于 ttyd）重写而来，1.0.0 起为单二进制实现。
+> （4.0-2，原作者 [wjz304](https://github.com/wjz304)，基于 ttyd）重写而来，1.0.0 起为单二进制实现，1.1.0 起提供工具栏。
 > 原始代码版权归原作者，本项目按 **GPLv3** 分发，详见 [LICENSE](LICENSE)。
 
 ---
@@ -57,6 +57,18 @@
 | **管理员 → root** | `administrators` 组成员打开即为 `root` shell |
 | **普通用户 → 本人账号** | 其他 DSM 用户以自己的 uid/gid 运行，独立家目录、独立权限，`$` 提示符 |
 | **可收紧** | `ALLOW_ALL_USERS=false` 时只有 administrators 能用（普通用户看到明确的 403 说明页） |
+
+### 工具栏（1.1.0 起）
+
+| 按钮 | 说明 |
+|---|---|
+| `A−` / 字号 / `A+` | 调整字号（9~28），记在浏览器本地，也支持 `Ctrl+滚轮` |
+| 左右分屏 | 发送 `Ctrl+B %` |
+| 上下分屏 | 发送 `Ctrl+B "` |
+| 关闭窗格 | 带应用内确认框，确认后发送 `Ctrl+B x` + `y` |
+| `? 帮助` | 快捷键说明（Esc 或点空白处关闭） |
+
+右键保留浏览器原生菜单（复制/粘贴/检查元素），tmux 的右键菜单已抑制；除 `%` `"` `x` 外的 tmux 快捷键全部解绑。
 
 ### 终端
 
@@ -205,7 +217,7 @@ alias ll='ls -alF --color=auto'
 
 ### 功能对照
 
-| 维度 | 原项目 4.0-2（ttyd） | Terminal-DSM 1.0.0 |
+| 维度 | 原项目 4.0-2（ttyd） | Terminal-DSM 1.1.0 |
 |---|---|---|
 | **入口认证** | ❌ 无。nginx 的 `location /terminal` 直接反代到 ttyd 的 unix socket，不做任何校验；而且 `proxy_set_header Cookie ""` **主动丢掉 cookie**，所以哪怕 DSM 已登录也传不进去 | ✅ 应用内校验 DSM 会话（cookie + `SynoToken`），未登录 302 到登录页 |
 | **打开后要输密码** | ⚠️ 默认是 `login`（`USER_LOGIN=false`），会弹 `login:` 要 root 密码 | ✅ 打开即进 shell（认证已经由 DSM 完成） |

@@ -10,8 +10,8 @@
 #   原始代码版权归原作者，按 GPLv3 分发（见 LICENSE）。
 # ---------------------------------------------------------------------------
 SPK_NAME = terminal
-SPK_VERS = 1.0.0
-SPK_REV = 2
+SPK_VERS = 1.1.0
+SPK_REV = 0
 SPK_ICON = src/$(SPK_NAME).png
 
 DEPENDS = cross/tmux

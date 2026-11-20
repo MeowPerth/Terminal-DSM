@@ -96,53 +96,147 @@
     return true;
   });
 
-  /* 右键：一按就弹出 tmux 上下文菜单，松开不消失。
-     做法：右键的按下/松开全部拦下来，不让 xterm 上报；
-     只在按下时由我们自己给 tmux 发一次 MouseDown3（弹出菜单），
-     永远不发 MouseUp3 —— tmux 收不到“松开”，菜单就一直开着。
-     菜单项用鼠标左键点，或按 h/v/x/r/m/z 快捷键。 */
-  function termCell(ev) {
-    var el = document.getElementById("terminal");
-    var r = el.getBoundingClientRect();
-    var cw = r.width / (term.cols || 1);
-    var ch = r.height / (term.rows || 1);
-    var col = Math.floor((ev.clientX - r.left) / cw) + 1;
-    var row = Math.floor((ev.clientY - r.top) / ch) + 1;
-    return {
-      col: Math.min(term.cols || 1, Math.max(1, col)),
-      row: Math.min(term.rows || 1, Math.max(1, row)),
-    };
-  }
-
-  function sendRightPress(cell) {
-    if (!ws || ws.readyState !== 1) return;
-    ws.send(encoder.encode("\x1b[<2;" + cell.col + ";" + cell.row + "M"));
-  }
-
-  function swallowRight(ev) {
-    if (ev.button !== 2) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
-  }
-
+  /* 右键：交还给浏览器（使用浏览器自带的右键菜单：复制/粘贴/检查元素等）。
+     只做一件事：把右键事件挡在 xterm 之前，避免 tmux 也弹出它自己的菜单。
+     粘贴仍可用 Ctrl+Shift+V。 */
   window.addEventListener(
     "mousedown",
     function (ev) {
       if (ev.button !== 2) return;
-      ev.preventDefault();
       ev.stopPropagation();
       if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
-      sendRightPress(termCell(ev));
+    },
+    true
+  );
+  window.addEventListener(
+    "mouseup",
+    function (ev) {
+      if (ev.button !== 2) return;
+      ev.stopPropagation();
+      if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
     },
     true
   );
 
-  // 松开/辅助点击一律吞掉，绝不把 MouseUp3 发给 tmux（发了菜单就会关）
-  window.addEventListener("mouseup", swallowRight, true);
-  window.addEventListener("pointerup", swallowRight, true);
-  window.addEventListener("auxclick", swallowRight, true);
-  window.addEventListener("contextmenu", swallowRight, true);
+  /* ---------- 工具栏 ---------- */
+  var PREFIX = "\x02"; // Ctrl+B
+
+  function sendKeys(str) {
+    if (!ws || ws.readyState !== 1) {
+      toast("未连接");
+      return;
+    }
+    ws.send(encoder.encode(str));
+  }
+
+  function keepFocus() {
+    try { term.focus(); } catch (e) {}
+  }
+
+  function applyFontSize(n) {
+    n = Math.max(9, Math.min(28, parseInt(n, 10) || 14));
+    term.options.fontSize = n;
+    try { fit.fit(); } catch (e) {}
+    var el = document.getElementById("fontsize");
+    if (el) el.value = String(n);
+    try { localStorage.setItem("term.fontSize", String(n)); } catch (e) {}
+  }
+
+  /* ---------- 弹层（帮助 / 确认） ---------- */
+  function showModal(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add("show");
+  }
+  function hideModal(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove("show");
+  }
+  function hideAllModals() {
+    ["help", "confirm"].forEach(hideModal);
+  }
+
+  var confirmResolver = null;
+  function askConfirm(title, text) {
+    var box = document.getElementById("confirm");
+    if (!box) return Promise.resolve(true);
+    box.querySelector("h3").textContent = title || "确认";
+    document.getElementById("confirm-text").textContent = text || "";
+    showModal("confirm");
+    return new Promise(function (resolve) {
+      confirmResolver = resolve;
+    });
+  }
+
+  (function initModals() {
+    var confirmBox = document.getElementById("confirm");
+    if (confirmBox) {
+      confirmBox.addEventListener("click", function (ev) {
+        if (ev.target === confirmBox) { hideModal("confirm"); if (confirmResolver) { confirmResolver(false); confirmResolver = null; } }
+      });
+      var ok = document.getElementById("confirm-ok");
+      var cancel = document.getElementById("confirm-cancel");
+      if (ok) ok.addEventListener("click", function () { hideModal("confirm"); if (confirmResolver) { confirmResolver(true); confirmResolver = null; } });
+      if (cancel) cancel.addEventListener("click", function () { hideModal("confirm"); if (confirmResolver) { confirmResolver(false); confirmResolver = null; } });
+    }
+    var help = document.getElementById("help");
+    if (help) {
+      help.addEventListener("click", function (ev) { if (ev.target === help) hideModal("help"); });
+    }
+    window.addEventListener("keydown", function (ev) {
+      if (ev.key !== "Escape") return;
+      if (help && help.classList.contains("show")) { hideModal("help"); ev.stopPropagation(); }
+      if (confirmBox && confirmBox.classList.contains("show")) { hideModal("confirm"); if (confirmResolver) { confirmResolver(false); confirmResolver = null; } ev.stopPropagation(); }
+    }, true);
+  })();
+
+  (function initToolbar() {
+    var bar = document.getElementById("bar");
+    if (!bar) return;
+
+    var saved = parseInt(localStorage.getItem("term.fontSize") || "", 10);
+    if (saved >= 9 && saved <= 28) applyFontSize(saved);
+
+    bar.addEventListener("click", function (ev) {
+      var btn = ev.target.closest ? ev.target.closest("button") : null;
+      if (!btn) return;
+      var act = btn.getAttribute("data-act");
+      var f = btn.getAttribute("data-font");
+
+      if (f === "-") { applyFontSize((term.options.fontSize || 14) - 1); return; }
+      if (f === "+") { applyFontSize((term.options.fontSize || 14) + 1); return; }
+
+      switch (act) {
+        case "split-h":
+          sendKeys(PREFIX + "%");
+          keepFocus();
+          return;
+        case "split-v":
+          sendKeys(PREFIX + '"');
+          keepFocus();
+          return;
+        case "kill-pane":
+          askConfirm("关闭当前窗格？", "如果是最后一个窗格，会话会结束，需要重新打开窗口。").then(function (ok) {
+            if (!ok) return;
+            sendKeys(PREFIX + "x");
+            setTimeout(function () { sendKeys("y"); keepFocus(); }, 200);
+          });
+          return;
+        case "help":
+          showModal("help");
+          return;
+      }
+    });
+
+    // Ctrl + 滚轮 缩放字号
+    var termEl = document.getElementById("terminal");
+    if (termEl) {
+      termEl.addEventListener("wheel", function (ev) {
+        if (!ev.ctrlKey) return;
+        ev.preventDefault();
+        applyFontSize((term.options.fontSize || 14) + (ev.deltaY < 0 ? 1 : -1));
+      }, { passive: false });
+    }
+  })();
 
   /* ---------- WebSocket ---------- */
   var overlay = document.getElementById("overlay");

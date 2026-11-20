@@ -21,7 +21,11 @@ command -v "$GO" >/dev/null 2>&1 || { echo "找不到 go（可用 GO=/path/to/go
 
 VERS=$(sed -n 's/^SPK_VERS *= *//p' "$REPO/Makefile" | head -1 | tr -d ' ')
 REV=$(sed -n 's/^SPK_REV *= *//p' "$REPO/Makefile" | head -1 | tr -d ' ')
-VER="${VERS}-${REV}"
+if [ "${REV}" = "0" ] || [ -z "${REV}" ]; then
+  VER="${VERS}"
+else
+  VER="${VERS}-${REV}"
+fi
 
 W=$(mktemp -d /tmp/localpack.XXXXXX)
 trap 'rm -rf "$W"' EXIT
